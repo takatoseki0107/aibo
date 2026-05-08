@@ -5,6 +5,7 @@ export type AuthState = {
   isLoading: boolean
   idToken: string | null
   signOut: () => Promise<void>
+  handleUnauthorized: () => void
 }
 
 export const AuthContext = createContext<AuthState | null>(null)

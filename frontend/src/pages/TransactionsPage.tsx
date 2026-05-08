@@ -38,9 +38,10 @@ type EditModalProps = {
   idToken: string
   onClose: () => void
   onSaved: () => void
+  onUnauthorized: () => void
 }
 
-function EditModal({ tx, idToken, onClose, onSaved }: EditModalProps) {
+function EditModal({ tx, idToken, onClose, onSaved, onUnauthorized }: EditModalProps) {
   const [type, setType] = useState<TransactionType>(tx.type)
   const [amount, setAmount] = useState(String(tx.amount))
   const [category, setCategory] = useState(tx.category)
@@ -71,6 +72,7 @@ function EditModal({ tx, idToken, onClose, onSaved }: EditModalProps) {
         },
         body: JSON.stringify({ type, amount: Number(amount), category, date, memo: memo || null }),
       })
+      if (res.status === 401 || res.status === 403) { onUnauthorized(); return }
       if (!res.ok) throw new Error('更新に失敗しました')
       onSaved()
     } catch (err) {
@@ -211,7 +213,7 @@ function EditModal({ tx, idToken, onClose, onSaved }: EditModalProps) {
 // ── メインコンポーネント ────────────────────────────────────────────────────
 
 export function TransactionsPage() {
-  const { idToken } = useAuth()
+  const { idToken, handleUnauthorized } = useAuth()
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -236,6 +238,7 @@ export function TransactionsPage() {
       const res = await fetch(`${API_URL}/transactions`, {
         headers: { Authorization: `Bearer ${idToken}` },
       })
+      if (res.status === 401 || res.status === 403) { handleUnauthorized(); return }
       if (!res.ok) throw new Error('一覧の取得に失敗しました')
       const data = await res.json()
       const sorted = [...(data.transactions as Transaction[])].sort(
@@ -271,6 +274,7 @@ export function TransactionsPage() {
         },
         body: JSON.stringify({ type, amount: Number(amount), category, date, memo: memo || null }),
       })
+      if (res.status === 401 || res.status === 403) { handleUnauthorized(); return }
       if (!res.ok) throw new Error('登録に失敗しました')
       setAmount('')
       setDate(today())
@@ -302,6 +306,7 @@ export function TransactionsPage() {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${idToken}` },
       })
+      if (res.status === 401 || res.status === 403) { handleUnauthorized(); return }
       if (!res.ok) throw new Error('削除に失敗しました')
       await fetchTransactions()
     } catch (err) {
@@ -319,6 +324,7 @@ export function TransactionsPage() {
           idToken={idToken ?? ''}
           onClose={() => setEditingTx(null)}
           onSaved={() => { setEditingTx(null); void fetchTransactions() }}
+          onUnauthorized={handleUnauthorized}
         />
       )}
 

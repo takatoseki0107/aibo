@@ -16,7 +16,7 @@ function Spinner() {
 }
 
 export function AdvicePage() {
-  const { idToken } = useAuth()
+  const { idToken, handleUnauthorized } = useAuth()
   const [advice, setAdvice] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -28,6 +28,7 @@ export function AdvicePage() {
       const res = await fetch(`${API_URL}/transactions/advice`, {
         headers: { Authorization: `Bearer ${idToken}` },
       })
+      if (res.status === 401 || res.status === 403) { handleUnauthorized(); return }
       if (!res.ok) throw new Error('アドバイスの取得に失敗しました')
       const data = await res.json()
       setAdvice(data.advice)
