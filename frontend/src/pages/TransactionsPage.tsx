@@ -220,6 +220,8 @@ export function TransactionsPage() {
   const [successMsg, setSuccessMsg] = useState<string | null>(null)
   const [editingTx, setEditingTx] = useState<Transaction | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [filterMonth, setFilterMonth] = useState<string>('')
+  const [filterCategory, setFilterCategory] = useState<string>('')
 
   const [type, setType] = useState<TransactionType>('expense')
   const [amount, setAmount] = useState('')
@@ -282,6 +284,16 @@ export function TransactionsPage() {
       setIsSubmitting(false)
     }
   }
+
+  const availableMonths = Array.from(
+    new Set(transactions.map(tx => tx.date.slice(0, 7)))
+  ).sort((a, b) => b.localeCompare(a))
+
+  const filteredTransactions = transactions.filter(tx => {
+    if (filterMonth && !tx.date.startsWith(filterMonth)) return false
+    if (filterCategory && tx.category !== filterCategory) return false
+    return true
+  })
 
   async function handleDelete(transactionId: string) {
     setDeletingId(transactionId)
@@ -449,8 +461,39 @@ export function TransactionsPage() {
               className="rounded-2xl shadow-sm overflow-hidden"
               style={{ backgroundColor: '#fff', border: '1px solid #F0D8C8' }}
             >
-              <div className="px-6 py-4" style={{ borderBottom: '1px solid #F0D8C8' }}>
-                <h2 className="text-sm font-bold" style={{ color: '#3D1F0F' }}>収支一覧</h2>
+              <div className="px-6 py-4 flex flex-wrap items-center gap-3" style={{ borderBottom: '1px solid #F0D8C8' }}>
+                <h2 className="text-sm font-bold mr-auto" style={{ color: '#3D1F0F' }}>収支一覧</h2>
+                <select
+                  value={filterMonth}
+                  onChange={e => setFilterMonth(e.target.value)}
+                  className="px-3 py-1.5 rounded-xl text-xs outline-none appearance-none"
+                  style={{ backgroundColor: '#FDF6F0', border: '1.5px solid #E8C9B0', color: '#3D1F0F', minWidth: '110px' }}
+                >
+                  <option value="">すべての月</option>
+                  {availableMonths.map(m => (
+                    <option key={m} value={m}>{m.replace('-', '年')}月</option>
+                  ))}
+                </select>
+                <select
+                  value={filterCategory}
+                  onChange={e => setFilterCategory(e.target.value)}
+                  className="px-3 py-1.5 rounded-xl text-xs outline-none appearance-none"
+                  style={{ backgroundColor: '#FDF6F0', border: '1.5px solid #E8C9B0', color: '#3D1F0F', minWidth: '100px' }}
+                >
+                  <option value="">すべてのカテゴリ</option>
+                  {CATEGORIES.map(c => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+                {(filterMonth || filterCategory) && (
+                  <button
+                    onClick={() => { setFilterMonth(''); setFilterCategory('') }}
+                    className="px-2.5 py-1.5 rounded-xl text-xs font-semibold transition hover:opacity-80"
+                    style={{ backgroundColor: '#FEE8E0', color: '#C0392B', border: '1px solid #F5C0B0' }}
+                  >
+                    リセット
+                  </button>
+                )}
               </div>
 
               {isLoading ? (
@@ -460,6 +503,10 @@ export function TransactionsPage() {
               ) : transactions.length === 0 ? (
                 <p className="px-6 py-12 text-sm text-center" style={{ color: '#C09080' }}>
                   まだ収支データがありません
+                </p>
+              ) : filteredTransactions.length === 0 ? (
+                <p className="px-6 py-12 text-sm text-center" style={{ color: '#C09080' }}>
+                  条件に一致する収支がありません
                 </p>
               ) : (
                 <div className="overflow-x-auto">
@@ -478,7 +525,7 @@ export function TransactionsPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {transactions.map((tx, i) => (
+                      {filteredTransactions.map((tx, i) => (
                         <tr
                           key={tx.transactionId}
                           style={{ borderTop: i === 0 ? 'none' : '1px solid #F5EAE0' }}
