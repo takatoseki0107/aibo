@@ -31,7 +31,10 @@ aibo/
 ├── lambda/main.py       # FastAPI APIハンドラー（Lambdaエントリーポイント: handler）
 ├── terraform/           # インフラ定義
 ├── frontend/            # Reactフロントエンド
-├── requirements.txt
+├── tests/               # Pytestユニットテスト
+├── .github/workflows/   # GitHub Actions CIワークフロー
+├── requirements.txt     # 本番用依存パッケージ
+├── requirements-dev.txt # 開発・テスト用依存パッケージ
 └── lambda.zip           # Lambdaデプロイパッケージ
 ```
 
@@ -80,6 +83,10 @@ uvicorn lambda.main:app --reload
 # フロントエンド開発サーバー
 cd frontend && npm run dev
 
+# テスト実行
+pip install -r requirements-dev.txt
+python -m pytest tests/ -v
+
 # Lambdaパッケージビルド
 pip install -r requirements.txt -t lambda/
 cd lambda && zip -r ../lambda.zip .
@@ -89,3 +96,17 @@ cd terraform
 terraform plan -var="alert_email=your@email.com"
 terraform apply -var="alert_email=your@email.com"
 ```
+
+---
+
+## CI/CD
+
+- **CI**: GitHub Actions（`.github/workflows/ci.yml`）
+  - mainへのpush・PRで自動実行
+  - Backend: Pytestユニットテスト
+  - Frontend: 型チェック・Lint・ビルド
+- **CD**: AWS Amplify（`amplify.yml`）
+  - mainへのpushで自動ビルド・デプロイ
+
+### テスト方針
+DynamoDB・Bedrockの統合テストはCI環境でのAWS認証が必要なためスコープ外。ビジネスロジック（集計・予算チェック・バリデーション）のユニットテストのみ実装。
