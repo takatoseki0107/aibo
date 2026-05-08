@@ -55,7 +55,7 @@ Aiboは、AIが収支データをもとに家計アドバイスを自動生成�
 | ログイン | Cognito認証 |
 | サインアップ | Cognitoユーザー登録・確認コード認証 |
 | ダッシュボード | 収支サマリー・日別グラフ |
-| 収支管理 | 収支の登録・一覧表示 |
+| 収支管理 | 収支の登録・一覧表示・編集・削除・月別／カテゴリフィルター |
 | AIアドバイス | Bedrockによる家計アドバイス |
 
 ### デプロイ済みURL
@@ -96,6 +96,8 @@ mainブランチへのpushで自動的にAmplifyがビルド・デプロイし�
 | `GET` | `/transactions` | 収支一覧を取得する |
 | `GET` | `/transactions/summary` | 収支サマリー（合計）を取得する |
 | `GET` | `/transactions/advice` | AIによる家計アドバイスを取得する（Bedrock） |
+| `DELETE` | `/transactions/{transactionId}` | 指定した収支を削除する |
+| `PUT` | `/transactions/{transactionId}` | 指定した収支を編集する（部分更新） |
 
 ### POST /transactions - リクエスト例
 
@@ -263,6 +265,7 @@ DynamoDB・Bedrockへの統合テストはCI環境でのAWS認証が必要なた
 
 テスト対象：
 - `Transaction` モデルのバリデーション（型・必須項目チェック）
+- `TransactionUpdate` モデルのバリデーション（部分更新・型チェック）
 - `get_recent_summary()` の集計ロジック（収入・支出・残高計算、期間フィルタリング）
 - `check_and_notify_budget()` の予算チェックロジック（閾値判定・SNS通知条件）
 - サマリー計算（収入のみ・支出のみ・混在パターン）
