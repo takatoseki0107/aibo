@@ -45,11 +45,11 @@ resource "aws_cognito_user_pool" "household" {
   name = "household-user-pool-${var.environment}"
 
   password_policy {
-    minimum_length    = 12
+    minimum_length    = 6
     require_uppercase = true
     require_lowercase = true
     require_numbers   = true
-    require_symbols   = true
+    require_symbols   = false
   }
 
   auto_verified_attributes = ["email"]
@@ -249,6 +249,22 @@ resource "aws_apigatewayv2_route" "get_transactions" {
 resource "aws_apigatewayv2_route" "get_transactions_summary" {
   api_id             = aws_apigatewayv2_api.household.id
   route_key          = "GET /transactions/summary"
+  target             = "integrations/${aws_apigatewayv2_integration.household.id}"
+  authorization_type = "JWT"
+  authorizer_id      = aws_apigatewayv2_authorizer.household.id
+}
+
+resource "aws_apigatewayv2_route" "delete_transaction" {
+  api_id             = aws_apigatewayv2_api.household.id
+  route_key          = "DELETE /transactions/{transactionId}"
+  target             = "integrations/${aws_apigatewayv2_integration.household.id}"
+  authorization_type = "JWT"
+  authorizer_id      = aws_apigatewayv2_authorizer.household.id
+}
+
+resource "aws_apigatewayv2_route" "put_transaction" {
+  api_id             = aws_apigatewayv2_api.household.id
+  route_key          = "PUT /transactions/{transactionId}"
   target             = "integrations/${aws_apigatewayv2_integration.household.id}"
   authorization_type = "JWT"
   authorizer_id      = aws_apigatewayv2_authorizer.household.id
