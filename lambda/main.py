@@ -229,7 +229,7 @@ def delete_transaction(transaction_id: str, request: Request):
 def update_transaction(transaction_id: str, body: TransactionUpdate, request: Request):
     user_id = get_user_id(request)
 
-    update_fields = {k: v for k, v in body.model_dump().items() if v is not None}
+    update_fields = body.model_dump(exclude_unset=True)
     if not update_fields:
         raise HTTPException(status_code=400, detail="更新するフィールドがありません")
 
