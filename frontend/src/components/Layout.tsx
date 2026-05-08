@@ -20,7 +20,7 @@ export function Layout() {
     <div className="flex min-h-screen">
       {/* サイドバー（PC: md以上のみ表示） */}
       <aside
-        className="hidden md:flex w-56 flex-col flex-shrink-0"
+        className="w-56 flex-col flex-shrink-0 hidden md:flex"
         style={{ backgroundColor: '#3D1F0F' }}
       >
         {/* ロゴ */}
