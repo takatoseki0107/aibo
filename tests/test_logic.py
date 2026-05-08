@@ -164,6 +164,17 @@ class TestTransactionUpdateModel:
         assert upd.memo == "テスト"
         assert upd.type is None
 
+    def test_empty_memo_included_when_exclude_unset(self):
+        upd = TransactionUpdate(memo="")
+        fields = upd.model_dump(exclude_unset=True)
+        assert "memo" in fields
+        assert fields["memo"] == ""
+
+    def test_unset_memo_excluded_when_exclude_unset(self):
+        upd = TransactionUpdate(amount=1000)
+        fields = upd.model_dump(exclude_unset=True)
+        assert "memo" not in fields
+
     def test_invalid_type_raises(self):
         with pytest.raises(Exception):
             TransactionUpdate(type="invalid")

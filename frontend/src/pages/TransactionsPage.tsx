@@ -70,7 +70,7 @@ function EditModal({ tx, idToken, onClose, onSaved, onUnauthorized }: EditModalP
           Authorization: `Bearer ${idToken}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ type, amount: Number(amount), category, date, memo: memo || null }),
+        body: JSON.stringify({ type, amount: Number(amount), category, date, memo }),
       })
       if (res.status === 401 || res.status === 403) { onUnauthorized(); return }
       if (!res.ok) throw new Error('更新に失敗しました')
