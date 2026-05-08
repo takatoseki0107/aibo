@@ -71,7 +71,7 @@ function buildChartData(transactions: Transaction[]): MonthlyBar[] {
 }
 
 export function DashboardPage() {
-  const { idToken } = useAuth()
+  const { idToken, handleUnauthorized } = useAuth()
   const [summary, setSummary] = useState<Summary | null>(null)
   const [chartData, setChartData] = useState<MonthlyBar[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -87,6 +87,8 @@ export function DashboardPage() {
         fetch(`${API_URL}/transactions`, { headers }),
       ])
 
+      if (summaryRes.status === 401 || summaryRes.status === 403) { handleUnauthorized(); return }
+      if (txRes.status === 401 || txRes.status === 403) { handleUnauthorized(); return }
       if (!summaryRes.ok) throw new Error('サマリーの取得に失敗しました')
       if (!txRes.ok) throw new Error('取引データの取得に失敗しました')
 

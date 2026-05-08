@@ -32,8 +32,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIdToken(null)
   }
 
+  function handleUnauthorized() {
+    logout().catch(() => {})
+    setIsAuthenticated(false)
+    setIdToken(null)
+  }
+
   return (
-    <AuthContext.Provider value={{ isAuthenticated, isLoading, idToken, signOut }}>
+    <AuthContext.Provider value={{ isAuthenticated, isLoading, idToken, signOut, handleUnauthorized }}>
       {children}
     </AuthContext.Provider>
   )
