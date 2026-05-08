@@ -257,16 +257,34 @@ AWS MLAの資格試験でBedrockの知識はありましたが、実際に使お
 
 ## テスト・CI/CDについて
 
-テストコードはPytestの学習は行いましたが、今回はAPIの動作確認をcurlで手動検証する形を選びました。サーバーレス構成・認証・DynamoDB・Bedrockの統合実装を優先した判断です。テストの重要性は認識しており、特に予算計算ロジックやBedrock連携部分から順次Pytestによる単体テストを追加実装予定です。
+### テスト方針
 
-手動検証では主に以下を確認しました：
+DynamoDB・Bedrockへの統合テストはCI環境でのAWS認証が必要なためスコープ外とし、**ビジネスロジックのユニットテストをPytestで実装**しています。
 
-* Cognito JWT認証の正常系・異常系（トークンなし・期限切れ）
-* DynamoDBへの収支登録・一覧取得・集計の動作
-* 予算超過時のSNS通知メール送信
-* BedrockによるAIアドバイスの生成・レスポンス確認
+テスト対象：
+- `Transaction` モデルのバリデーション（型・必須項目チェック）
+- `get_recent_summary()` の集計ロジック（収入・支出・残高計算、期間フィルタリング）
+- `check_and_notify_budget()` の予算チェックロジック（閾値判定・SNS通知条件）
+- サマリー計算（収入のみ・支出のみ・混在パターン）
 
-**CI/CD**はバックエンドのGitHub Actionsによるデプロイ自動化はスコープ外としましたが、フロントエンドはAmplifyとGitHubを連携し、mainブランチへのpushで自動ビルド・デプロイを実現しています。OIDCを使ったGitHub ActionsからのAWSデプロイは次のステップとして学習中です。
+```bash
+# テスト実行
+pip install -r requirements-dev.txt
+python -m pytest tests/ -v
+```
+
+### CI（GitHub Actions）
+
+mainブランチへのpush・PRで以下のチェックが自動実行されます。
+
+| ジョブ | 内容 |
+|--------|------|
+| Backend | Pytestユニットテスト・カバレッジ計測 |
+| Frontend | 型チェック（tsc）・Lint・ビルド確認 |
+
+### CD（Amplify自動デプロイ）
+
+フロントエンドはAmplifyとGitHubを連携し、mainブランチへのpushで自動ビルド・デプロイを実現しています。
 
 ---
 
