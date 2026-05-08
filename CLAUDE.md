@@ -48,6 +48,8 @@ aibo/
 | `GET` | `/transactions` | 収支一覧取得 |
 | `GET` | `/transactions/summary` | 収支合計取得 |
 | `GET` | `/transactions/advice` | AIアドバイス取得（Bedrock） |
+| `DELETE` | `/transactions/{transactionId}` | 収支削除 |
+| `PUT` | `/transactions/{transactionId}` | 収支編集（部分更新） |
 
 - 認証: Cognito JWT（`Authorization: Bearer <id_token>`）
 - DynamoDB: テーブル名 `household-transactions`、パーティションキー `userId`、ソートキー `transactionId`

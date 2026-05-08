@@ -29,6 +29,7 @@ with patch("boto3.resource"), patch("boto3.client"):
     _spec.loader.exec_module(_mod)
 
 Transaction = _mod.Transaction
+TransactionUpdate = _mod.TransactionUpdate
 get_recent_summary = _mod.get_recent_summary
 check_and_notify_budget = _mod.check_and_notify_budget
 BUDGET_THRESHOLD = _mod.BUDGET_THRESHOLD
@@ -144,6 +145,28 @@ class TestCheckAndNotifyBudget:
         ]
         mock_sns = self._run(items)
         mock_sns.publish.assert_not_called()
+
+
+# ── TransactionUpdate バリデーション ─────────────────────────────────────────
+
+class TestTransactionUpdateModel:
+    def test_all_fields_optional(self):
+        upd = TransactionUpdate()
+        assert upd.type is None
+        assert upd.amount is None
+        assert upd.category is None
+        assert upd.memo is None
+        assert upd.date is None
+
+    def test_partial_update(self):
+        upd = TransactionUpdate(amount=9999, memo="テスト")
+        assert upd.amount == 9999
+        assert upd.memo == "テスト"
+        assert upd.type is None
+
+    def test_invalid_type_raises(self):
+        with pytest.raises(Exception):
+            TransactionUpdate(type="invalid")
 
 
 # ── サマリー計算（収入・支出・残高）──────────────────────────────────────────
