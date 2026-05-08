@@ -44,6 +44,14 @@ class Transaction(BaseModel):
     date: str
 
 
+class TransactionUpdate(BaseModel):
+    type: Optional[Literal["income", "expense"]] = None
+    amount: Optional[int] = None
+    category: Optional[str] = None
+    memo: Optional[str] = None
+    date: Optional[str] = None
+
+
 def get_user_id(request: Request) -> str:
     return request.scope["aws.event"]["requestContext"]["authorizer"]["jwt"]["claims"]["sub"]
 
@@ -199,6 +207,49 @@ def get_advice(request: Request):
         raise HTTPException(status_code=500, detail="サーバーエラーが発生しました")
 
     return {"advice": advice}
+
+
+@app.delete("/transactions/{transaction_id}")
+def delete_transaction(transaction_id: str, request: Request):
+    user_id = get_user_id(request)
+    try:
+        response = table.delete_item(
+            Key={"userId": user_id, "transactionId": transaction_id},
+            ConditionExpression="attribute_exists(transactionId)",
+        )
+        logger.info(f"削除しました: user={user_id}, transactionId={transaction_id}, response={response}")
+    except ClientError as e:
+        if e.response["Error"]["Code"] == "ConditionalCheckFailedException":
+            raise HTTPException(status_code=404, detail="該当する収支が見つかりません")
+        raise HTTPException(status_code=500, detail="サーバーエラーが発生しました")
+    return {"message": "削除しました"}
+
+
+@app.put("/transactions/{transaction_id}")
+def update_transaction(transaction_id: str, body: TransactionUpdate, request: Request):
+    user_id = get_user_id(request)
+
+    update_fields = {k: v for k, v in body.model_dump().items() if v is not None}
+    if not update_fields:
+        raise HTTPException(status_code=400, detail="更新するフィールドがありません")
+
+    update_expr = "SET " + ", ".join(f"#f_{k} = :{k}" for k in update_fields)
+    expr_names = {f"#f_{k}": k for k in update_fields}
+    expr_values = {f":{k}": v for k, v in update_fields.items()}
+
+    try:
+        table.update_item(
+            Key={"userId": user_id, "transactionId": transaction_id},
+            UpdateExpression=update_expr,
+            ExpressionAttributeNames=expr_names,
+            ExpressionAttributeValues=expr_values,
+            ConditionExpression="attribute_exists(transactionId)",
+        )
+    except ClientError as e:
+        if e.response["Error"]["Code"] == "ConditionalCheckFailedException":
+            raise HTTPException(status_code=404, detail="該当する収支が見つかりません")
+        raise HTTPException(status_code=500, detail="サーバーエラーが発生しました")
+    return {"message": "更新しました"}
 
 
 handler = Mangum(app)
