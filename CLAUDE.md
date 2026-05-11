@@ -73,6 +73,12 @@ aibo/
 - `frontend/` フォルダ配下で管理
 - Cognito認証フローは SRP（`ALLOW_USER_SRP_AUTH`）
 - トークン有効期限: アクセストークン・IDトークン 60分、リフレッシュトークン 30日
+- favicon: `frontend/public/favicon.svg`（テラコッタ色の「A」アイコン）、`index.html` で参照済み
+
+### Amplify設定（コンソール上）
+- リライトとリダイレクト: `/<*>` → `/index.html`、ステータス `404-200` に設定済み
+  - SPAのルーティング（`/dashboard`、`/transactions` 等への直接アクセス）を有効にするための設定
+  - `200` にするとJSファイルまでリライトされてアプリが表示されなくなるため必ず `404-200` を使うこと
 
 ---
 
